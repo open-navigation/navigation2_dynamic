@@ -1,6 +1,3 @@
-#ifndef CONSTANT_VELOCITY_MODEL_HPP
-#define CONSTANT_VELOCITY_MODEL_HPP
-
 #include "nav2_dynamic_motion_model/constant_velocity_model.hpp"
 
 namespace nav2_dynamic_motion_model
@@ -22,5 +19,4 @@ geometry_msgs::msg::Pose ConstantVelocityModel::predictObstaclePose(
 }
 
 }
-#endif // CONSTANT_VELOCITY_MODEL_HPP
 
