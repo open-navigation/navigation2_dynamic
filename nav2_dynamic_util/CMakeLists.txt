@@ -17,26 +17,27 @@ find_package(visualization_msgs REQUIRED)
 
 include_directories(include)
 
-install(DIRECTORY include/
-  DESTINATION include/${PROJECT_NAME}
+add_library(
+      ${PROJECT_NAME} 
+    SHARED
+      src/tracked_obstacle_utils.cpp
 )
 
-add_library(${PROJECT_NAME} SHARED
-  src/tracked_obstacle_utils.cpp
-)
-# Link dependencies
-ament_target_dependencies(${PROJECT_NAME}
+ament_target_dependencies(
+    ${PROJECT_NAME} 
+  SYSTEM
     rclcpp
     geometry_msgs
     nav2_dynamic_msgs
     nav2_dynamic_motion_model
 )
 
-# Export headers
-target_include_directories(${PROJECT_NAME} PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+target_include_directories(${PROJECT_NAME} 
+  INTERFACE
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
+target_link_libraries(${PROJECT_NAME} nav2_dynamic_motion_model::nav2_dynamic_motion_model)
 
 
 add_executable(tracked_obstacle_publisher src/tracked_obstacle_publisher.cpp)
@@ -49,8 +50,36 @@ ament_target_dependencies(tracked_obstacle_publisher
                                   visualization_msgs)
 
 
-install(TARGETS tracked_obstacle_publisher
+add_executable(test_util_node src/test_util_node.cpp)
+ament_target_dependencies(test_util_node 
+                                  rclcpp 
+                                  std_msgs 
+                                  geometry_msgs 
+                                  nav2_dynamic_msgs 
+                                  unique_identifier_msgs 
+                                  # nav2_dynamic_motion_model
+                                  visualization_msgs)
+target_link_libraries(test_util_node ${PROJECT_NAME}) 
+
+ 
+install(DIRECTORY include/
+  DESTINATION include/${PROJECT_NAME}
+)
+                                
+
+install(TARGETS 
+  tracked_obstacle_publisher
+  test_util_node
   DESTINATION lib/${PROJECT_NAME})
+
+# Install libraries
+install(
+    TARGETS ${PROJECT_NAME}
+    EXPORT export_${PROJECT_NAME}
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -66,7 +95,7 @@ endif()
 
 
 # Export package
-ament_export_include_directories(include)
+ament_export_include_directories(include/${PROJECT_NAME})
 ament_export_libraries(${PROJECT_NAME})
 
 
