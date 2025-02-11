@@ -11,36 +11,39 @@ find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav2_dynamic_msgs REQUIRED)
 
-
-
 include_directories(include)
 
-add_library(nav2_dynamic_motion_model 
-    src/constant_velocity_model.cpp
+add_library(
+      ${PROJECT_NAME} 
+    SHARED
+      src/constant_velocity_model.cpp
 )
-ament_target_dependencies(nav2_dynamic_motion_model
-    rclcpp
-    nav2_dynamic_msgs
-    geometry_msgs
+
+ament_target_dependencies(
+      ${PROJECT_NAME} 
+    SYSTEM
+      rclcpp
+      nav2_dynamic_msgs
+      geometry_msgs
 )
-# Export header files
-# target_include_directories(nav2_dynamic_motion_model PUBLIC
-#     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#     $<INSTALL_INTERFACE:include>
-# )
+
+target_include_directories(${PROJECT_NAME} 
+  INTERFACE
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+)
 
 install(DIRECTORY include/
   DESTINATION include/${PROJECT_NAME}
 )
 # Install libraries
 install(
-    TARGETS nav2_dynamic_motion_model
-    EXPORT export_nav2_dynamic_motion_model
-    LIBRARY DESTINATION lib
+    TARGETS ${PROJECT_NAME}
+    EXPORT export_${PROJECT_NAME}
     ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
 )
-
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -55,7 +58,12 @@ if(BUILD_TESTING)
 endif()
 
 # Export library for other packages
-ament_export_include_directories(include)
-ament_export_libraries(nav2_dynamic_motion_model)
-
+ament_export_include_directories(include/${PROJECT_NAME})
+ament_export_libraries(${PROJECT_NAME})
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_dependencies(
+  rclcpp
+  nav2_dynamic_msgs
+  geometry_msgs
+)
 ament_package()
