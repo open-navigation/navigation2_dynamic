@@ -4,59 +4,43 @@ The `nav2_dynamic_bringup` package is an example bringup system for launching CA
 
 To setup a dynamic environment, you need to run the following scripts.
 
-#### CARLA Simulation
-1. To run the CARLA simulation, execute the following command in Terminal 1:
-```shell
-sudo docker run --privileged --gpus all --net=host -e DISPLAY=:1 carlasim/carla:0.9.13 /bin/bash ./CarlaUE4.sh
-```
-
-#### CARLA ROS Bridge
-2. To run the CARLA ROS bridge, execute the following command in Terminal 2:
-```shell
-ros2 launch carla_ros_bridge carla_ros_bridge_with_example_ego_vehicle.launch.py
-```
-
-3. To send command signals to CARLA, run the following command in Terminal 3:
-```shell
-ros2 run carla_twist_to_control carla_twist_to_control
-```
-
-4. To generate traffic, execute the following commands in Terminal 4:
-```shell
-cd /path_to_carla/CARLA_0.9.13/PythonAPI/examples/
-python3 generate_traffic.py
-```
-
-#### Nav2 Stack for Navigation
-5. To run the navigation stack, execute the following command in Terminal 5:
-```shell
-ros2 launch nav2_dynamic_bringup navigation_launch
-```
 --------------
 
-### Installing CARLA 0.9.13 on Ubuntu 22.04
+### Installing CARLA 0.9.13 on Ubuntu 22.04 
 
-#### Installation Procedure
+#### Installation Procedure (Docker)
 
 Follow the link below and execute the provided script: https://carla.readthedocs.io/en/docs-preview/build_docker/
 ```shell
 docker pull carlasim/carla:0.9.13
 ```
+
+#### Installation Procedure (Native)
 Alternatively, you can download CARLA manually from the following link:
 https://github.com/carla-simulator/carla/releases/tag/0.9.13 and download `CARLA_0.9.13.tar.gz`.
 
-#### Running CARLA Outside Docker
-If running CARLA outside Docker, dynamic obstacles can be generated using the following script:
-```shell
-cd /path_to_carla/CARLA_0.9.13/PythonAPI/examples/
-python3 generate_traffic.py
-```
-
-When running CARLA inside Docker, the same script must be executed outside the Docker container.
 
 -------------------
 
-#### Installing CARLA ROS Bridge
+
+### Installing CARLA ROS Bridge (Docker)
+```bash
+mkdir -p ~/carla-ros-bridge && cd ~/carla-ros-bridge
+git clone --recurse-submodules https://github.com/chiragmakwana0296/ros-bridge.git -b fix/docker src/ros-bridge
+cd src/ros-bridge/docker
+docker compose build build_image
+docker compose up colcon_build
+``` 
+#### Host setup
+```bash
+sudo apt install ros-$ROS_DISTRO-rmw-cyclonedds-cpp
+# add below lines to ~/.bashrc
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+export FASTRTPS_DEFAULT_PROFILES_FILE=~/carla-ros-bridge/docker/content/dds.xml 
+```
+
+
+### Installing CARLA ROS Bridge (Native)
 
 Clone the master branch of ```carla_ros_bridge``` and follow the official installation guide:
 https://carla.readthedocs.io/projects/ros-bridge/en/latest/ros_installation_ros2/
@@ -102,18 +86,45 @@ Then, source the file:
 source ~/.bashrc
 ```
 
-#### Sourcing and Running CARLA ROS Bridge
 
-Source the `carla_ros_bridge` workspace:
+### Running CARLA and CARLA-ROS Bridge
+
+-------------------------------
+#### Run CARLA Simulation (docker)
+1. To run the CARLA simulation, execute the following command in Terminal 1:
 ```shell
-source ./install/setup.bash
+sudo docker run --privileged --gpus all --net=host -e DISPLAY=:1 carlasim/carla:0.9.13 /bin/bash ./CarlaUE4.sh
 ```
-Run the launch script:
+
+#### CARLA ROS Bridge (Docker)
+Run bridge 
+```bash
+docker compose up run_bridge
+```
+To generate thetraffic 
+```bash
+docker compose up generate_traffic
+```
+
+#### CARLA ROS Bridge (Native Ubuntu 22.04)
+2. To run the CARLA ROS bridge, execute the following command in Terminal 2:
 ```shell
 ros2 launch carla_ros_bridge carla_ros_bridge_with_example_ego_vehicle.launch.py
 ```
-Run the control script:
 
+3. To send command signals to CARLA, run the following command in Terminal 3:
 ```shell
 ros2 run carla_twist_to_control carla_twist_to_control
+```
+
+4. To generate traffic, execute the following commands in Terminal 4:
+```shell
+cd /path_to_carla/CARLA_0.9.13/PythonAPI/examples/
+python3 generate_traffic.py
+```
+
+#### Nav2 Stack for Navigation
+5. To run the navigation stack, execute the following command in Terminal 5:
+```shell
+ros2 launch nav2_dynamic_bringup navigation_launch
 ```
